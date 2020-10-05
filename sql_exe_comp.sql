@@ -1,4 +1,19 @@
---CREATE DATABASE forSqlExe
+-- Задания взяты с сайта sql-exe.ru
+-- Описание бд: 
+-- 4 таблицы:
+-- Product(maker, model, type)
+-- PC(code, model, speed, ram, hd, cd, price)
+-- Laptop(code, model, speed, ram, hd, price, screen)
+-- Printer(code, model, color, type, price)
+-- Таблица Product представляет производителя (maker), номер модели (model) и тип ('PC' - ПК, 'Laptop' - ПК-блокнот или 'Printer' - принтер).
+-- Предполагается, что номера моделей в таблице Product уникальны для всех производителей и типов продуктов. 
+-- В таблице PC для каждого ПК, однозначно определяемого уникальным кодом – code, указаны модель – model (внешний ключ к таблице Product), 
+-- скорость - speed (процессора в мегагерцах), объем памяти - ram (в мегабайтах), размер диска - hd (в гигабайтах), 
+-- скорость считывающего устройства - cd (например, '4x') и цена - price. 
+-- Таблица Laptop аналогична таблице РС за исключением того, что вместо скорости CD содержит размер экрана -screen (в дюймах). 
+-- В таблице Printer для каждой модели принтера указывается, является ли он цветным - color ('y', если цветной), 
+-- тип принтера - type (лазерный – 'Laser', струйный – 'Jet' или матричный – 'Matrix') и цена - price
+CREATE DATABASE forSqlExe
 USE forSqlExe
 
 CREATE TABLE Product(
@@ -172,3 +187,52 @@ FROM product
 WHERE type = 'PC'
 GROUP BY maker
 HAVING COUNT(model) >= 3
+
+-- 21 Найдите максимальную цену ПК, выпускаемых каждым производителем, у которого есть модели в таблице PC.
+-- Вывести: maker, максимальная цена
+SELECT maker, MAX(price) AS Max_price
+FROM pc LEFT JOIN product ON pc.model = product.model
+GROUP BY maker
+
+-- 22 Для каждого значения скорости ПК, превышающего 600 МГц, определите среднюю цену ПК с такой же скоростью
+-- Вывести: speed, средняя цена
+SELECT speed, AVG(price) AS Avg_price
+FROM pc INNER JOIN product ON pc.model = product.model
+WHERE speed > 600
+GROUP BY speed
+
+-- 23 Найдите производителей, которые производили бы как ПК со скоростью не менее 750 МГц, 
+-- так и ПК-блокноты со скоростью не менее 750 МГц. Вывести: Maker
+SELECT maker 
+FROM pc INNER JOIN product ON pc.model = product.model
+WHERE speed >= 750
+INTERSECT 
+SELECT maker 
+FROM laptop INNER JOIN product ON laptop.model = product.model
+WHERE speed >= 750
+
+-- 25 Найдите производителей принтеров, которые производят ПК с наименьшим объемом RAM 
+-- и с самым быстрым процессором среди всех ПК, имеющих наименьший объем RAM. Вывести: Maker
+SELECT DISTINCT maker 
+FROM product INNER JOIN pc ON product.model = pc.model
+WHERE ram = (SELECT MIN(ram) FROM pc)
+AND speed = (SELECT MAX(speed) FROM pc WHERE ram = (SELECT MIN(ram) FROM pc))
+INTERSECT
+SELECT DISTINCT maker 
+FROM product
+WHERE type = 'Printer'
+-- другой способ: select .. where type = 'Printer' and maker in (подзапрос)
+
+-- 26 Найдите среднюю цену ПК и ПК-блокнотов, выпущенных производителем A (латинская буква). 
+-- Вывести: одна общая средняя цена
+SELECT AVG(price)
+FROM 
+(SELECT code, model, price FROM pc
+WHERE model IN (SELECT model FROM product WHERE type = 'PC' AND maker = 'A')
+UNION 
+SELECT code, model, price FROM laptop
+WHERE model IN (SELECT model FROM product WHERE type = 'Laptop' AND maker = 'A')) 
+AS prod
+-- Не обойтись только моделью и ценой в запросах к pc и laptop, потому что UNION удаляет дубликаты
+-- в таком случае, может получиться неверное кол-во записей, в случае если пары {модель, цена} не уникальны
+
