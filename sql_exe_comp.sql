@@ -125,25 +125,50 @@ WHERE speed >= 2
 select * from Printer;
 insert into Product values ('E', 7756, 'Printer');
 insert into Printer(model, color, type, price) values (7756, 'y', 'Matrix', 12999);
-
+-- + создание и использование представления
 CREATE VIEW most_expensive_printer AS 
 SELECT model, price FROM Printer
 WHERE price = (SELECT MAX(price) FROM Printer)
 
 SELECT * FROM most_expensive_printer
 
--- �� �� ����� ���� ���������� ������ ������ ���� ������� �� �������� ����������� �������
-
--- 11 ������� ������� �������� ��
+-- 11 Найдите среднюю скорость ПК
 SELECT AVG(speed) FROM PC
 
--- 12 ������� ������� �������� ��-���������, ���� ������� ��������� 1000 ���
+-- 12 Найдите среднюю скорость ПК-блокнотов, цена которых превышает 1000 дол
 SELECT AVG(speed) FROM Laptop
 WHERE price > 1000
 
--- 13 ������� ������� �������� ��, ���������� �������������� A
+-- 13 Найдите среднюю скорость ПК, выпущенных производителем A
 SELECT AVG(speed) FROM Product p
 INNER JOIN PC ON p.model = PC.model
 WHERE maker = 'A'
 
+-- 14 запрос к другой бд
 
+-- 15 Найдите размеры жестких дисков, совпадающих у двух и более PC. Вывести: HD
+SELECT hd FROM pc GROUP BY hd HAVING COUNT(model) >= 2
+
+-- 17 Найдите модели ПК-блокнотов, скорость которых меньше скорости каждого из ПК.
+-- Вывести: type, model, speed
+SELECT DISTINCT type, laptop.model, speed 
+FROM laptop INNER JOIN product ON product.model = laptop.model
+WHERE speed < (SELECT MIN(speed) FROM pc)
+
+-- 18 Найдите производителей самых дешевых цветных принтеров. Вывести: maker, price
+SELECT DISTINCT maker, price
+FROM product INNER JOIN printer ON product.model = printer.model
+WHERE price = (SELECT MIN(price) FROM printer WHERE color = 'y') AND color = 'y'
+
+-- 19 Для каждого производителя, имеющего модели в таблице Laptop, найдите средний размер экрана выпускаемых им ПК-блокнотов.
+-- Вывести: maker, средний размер экрана.
+SELECT maker, AVG(screen) AS avg_screen
+FROM product INNER JOIN laptop ON product.model = laptop.model
+GROUP BY maker
+
+-- 20 Найдите производителей, выпускающих по меньшей мере три различных модели ПК. Вывести: Maker, число моделей ПК.
+SELECT maker, COUNT(model) AS Count_Model
+FROM product 
+WHERE type = 'PC'
+GROUP BY maker
+HAVING COUNT(model) >= 3
