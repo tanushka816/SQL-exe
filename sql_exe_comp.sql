@@ -91,7 +91,7 @@ SELECT model, speed, hd FROM PC WHERE (cd = '12x' OR cd = '24x') AND price < 600
 -- Вывод: производитель, скорость
 SELECT DISTINCT maker, speed FROM Product LEFT JOIN laptop ON Product.model=Laptop.model WHERE Laptop.hd>=10
 
--- 7 ������� ������ ������� � ���� ���� ��������� � ������� ��������� (������ ����) ������������� B (��������� �����)
+-- 7 Найдите номера моделей и цены всех имеющихся в продаже продуктов (любого типа) производителя B (латинская буква)
 
 SELECT p.model, price FROM Product p
 INNER JOIN PC ON p.model = PC.model
@@ -105,32 +105,23 @@ SELECT p.model, price FROM Product p
 INNER JOIN Printer  ON p.model = Printer.model
 WHERE p.maker = 'B'
 
--- 8 ������� �������������, ������������ ��, �� �� ��-��������
+-- 8 Найдите производителя, выпускающего ПК, но не ПК-блокноты
 INSERT INTO Product VALUES ('E', 9090, 'PC')
 INSERT INTO PC(model, speed, ram, hd, cd, price) VALUES (9090, 3, 32000, 600, '4x', 45000)
--- �������� �����, ����� ��� ����� ������
+
 
 SELECT maker FROM Product
 WHERE type = 'PC'
-EXCEPT  -- ��������� �������� ������ �����, ����������������� ��� - INTERSECT
+EXCEPT  -- для исключения, еще есть INTERSECT
 SELECT maker FROM Product
 WHERE type = 'Laptop'
--- ����� �������� ����� ALL, ���� ��� ���, ��������� ���������
 
--- 9 ������� �������������� �� � ����������� �� ����� 2 ���. �������: Maker
-select * from PC
--- ��������� ����� ������� ����� ��������: ����� ���� ��� �������� �� ����� �������
-SELECT * FROM Product p
-LEFT JOIN PC ON p.model = PC.model
--- inner ���� �����������
-SELECT * FROM Product p
-INNER JOIN PC ON p.model = PC.model
---
+-- 9 Найдите производителей ПК с процессором не менее 2. Вывести: Maker
 SELECT DISTINCT maker FROM Product p
 INNER JOIN PC ON p.model = PC.model
-WHERE speed >= 1
+WHERE speed >= 2
 
--- 10 ������� ������ ���������, ������� ����� ������� ����. �������: model, price
+-- 10 Найдите модели принтеров, имеющих самую высокую цену. Вывести: model, price
 select * from Printer;
 insert into Product values ('E', 7756, 'Printer');
 insert into Printer(model, color, type, price) values (7756, 'y', 'Matrix', 12999);
